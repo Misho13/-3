@@ -10,30 +10,29 @@ private:
 	int r_;
 	int i_;
 public:
-	friend Komp & operator + (Komp & a, Komp & b);
-	friend Komp & operator - (Komp & a, Komp & b);
-	friend Komp & operator * (Komp & a, Komp & b);
-	Komp()
+	friend Komp  operator + (Komp & a, Komp & b);
+	friend Komp  operator - (Komp & a, Komp & b);
+	friend Komp  operator * (Komp & a, Komp & b);
+	Komp() : r_(0) , i_(0)
 	{
-		r_ = 0;
-		i_ = 0;
+		
 	}
-	Komp(int r, int nr)
+	Komp(int r, int nr) : r_(r), i_(nr)
 	{
-		r_ = r;
-		i_ = nr;
+	
 	}
-	int   Real()
+	Komp & operator = (Komp & A) = default; 
+	
+	int   Real() const
 	{
 		return r_;
 
 	}
-	void print()
+	void print() const 
 	{
-		cout << "(";
-		cout << r_ << "+" << i_ << "i" << ")";
+		cout << "(" << r_ << "+" << i_ << "i" << ")";
 	}
-	int UnReal()
+	int UnReal() const 
 	{
 		return i_;
 	}
@@ -44,21 +43,21 @@ public:
 };
 
 
-Komp & operator + (Komp & a, Komp & b)
+Komp  operator + (Komp & a, Komp & b)
 {
 	Komp c;
 	c.r_ = a.r_ + b.r_;
 	c.i_ = a.i_ + b.i_;
 	return c;
 }
-Komp & operator - (Komp & a, Komp & b)
+Komp  operator - (Komp & a, Komp & b)
 {
 	Komp c;
 	c.r_ = a.r_ - b.r_;
 	c.i_ = b.i_ - b.i_;
 	return c;
 }
-Komp & operator * (Komp & a, Komp & b)
+Komp  operator * (Komp & a, Komp & b)
 {
 	Komp c;
 	c.r_ = a.r_*b.r_ - a.i_*b.i_;
@@ -72,31 +71,45 @@ private:
 	Komp ** Matr_;
 	int n_;
 public:
-	friend Matrix & operator + (Matrix & a, Matrix & b);
-	friend Matrix & operator - (Matrix & a, Matrix & b);
-	friend Matrix & operator * (Matrix & a, Matrix & b);
-	Matrix()
+	friend Matrix  operator + (Matrix & a, Matrix & b);
+	friend Matrix  operator - (Matrix & a, Matrix & b);
+	friend Matrix  operator * (Matrix & a, Matrix & b);
+	Matrix() :n_(0) , Matr_(nullptr)
 	{
-		Matr_ = new Komp*[0];
-		n_ = 0;
+
 	}
-	Matrix(Komp ** Matr, int n)
+	Matrix(Komp ** Matr, int n) : n_(n)
 	{
-		n_ = n;
-		Matr_ = new Komp*[n];
-		for (int i = 0; i < n; i++)
+		Matr_ = new Komp*[n_];
+		for (int i = 0; i < n_; i++)
 		{
-			Matr_[i] = new Komp[n];
+			Matr_[i] = new Komp[n_];
 		}
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < n_; i++)
 		{
-			for (int j = 0; j < n; j++)
+			for (int j = 0; j < n_; j++)
 			{
-				Matr_[i][j] = Komp(Matr[i][j].Real(), Matr[i][j].UnReal());
+				Matr_[i][j] = Matr[i][j];
 			}
 		}
 	}
-	void print2()
+	Matrix(Matrix & A): n_(A.n_)
+	{
+		
+		Matr_ = new Komp*[n_];
+		for (int i = 0; i < n_; i++)
+		{
+			Matr_[i] = new Komp[n_];
+		}
+		for (int i = 0; i < n_; i++)
+		{
+			for (int j = 0; j < n_; j++)
+			{
+				Matr_[i][j] = A.Matr_[i][j];
+			}
+		}
+	}
+	void print2() const 
 	{
 		for (int i = 0; i < n_; i++)
 		{
@@ -107,7 +120,30 @@ public:
 			cout << "\n";
 		}
 	}
-	int Size()
+	Matrix & operator= (const Matrix & A)
+	{
+		if (this != &A)
+		{
+			std::cout << "Перегруженный оператор присваивания" << std::endl;
+			for (size_t i = 0; i < n_; i++)
+			{
+				delete[] Matr_[i];
+			}
+			delete[]Matr_;
+			n_ = A.n_;
+			Matr_ = new Komp *[n_];
+			for (int i = 0; i < n_; i++)
+			{
+				Matr_[i] = A.Matr_[i];
+			}
+		}
+		else
+		{
+			std::cout << "Самоприсваивание" << std::endl;
+		}
+		return *this;
+	}
+	int Size() const 
 	{
 		return n_;
 	}
@@ -115,38 +151,47 @@ public:
 	{
 		return Matr_;
 	}
-	Matrix  & TRAN( Matrix& A)
+	Komp OPR2(Matrix &A)
 	{
-		//Matrix X(A.Matr_, A.n_);
+		Komp k;
+		k = A.Matr_[0][0] * A.Matr_[1][1] - A.Matr_[0][1] * A.Matr_[1][0];
+		return k;
+	}
+	Matrix  & TRAN()
+	{
+		Komp buff;
 		for (int i = 0; i < n_; i++)
 		{
-			for (int j = 0; j < n_; j++)
+			for (int j = 0; j < i; j++)
 			{
-				(*this).Matr_[j][i] = A.Matr_[i][j];
+				buff = Matr_[i][j];
+				Matr_[i][j] = Matr_[j][i];
+				Matr_[j][i] = buff;
 			}
 		}
-		cout << "TRANS\n";
-		//X.print2();
 		return *this;
 	}
 	~Matrix()
 	{
-		/*for (int i = 0; i < n_; i++)
+		if (!n_)
 		{
-			delete[] Matr_[i];
+			for (int i = 0; i < n_; ++i)
+			{
+				delete[] (Matr_[i]);
+			}
+			
+			delete[] Matr_;
+			
 		}
-		delete[] Matr_;*/
-	//	cout << "DESTRUCT" << endl;
 	}
 
 };
 
-Matrix & operator + (Matrix & a, Matrix & b)
+Matrix  operator + (Matrix & a, Matrix & b)
 {
 	if (a.Size() == b.Size())
 	{
 		Matrix c(a.Matr_, a.Size());
-		//c.Matr_ = new  Komp *[a.Size()];
 		for (int i = 0; i < a.Size(); i++)
 		{
 			for (int j = 0; j < a.Size(); j++)
@@ -159,14 +204,14 @@ Matrix & operator + (Matrix & a, Matrix & b)
 	else
 	{
 		cout << "Разные размеры\n";
+		return Matrix();
 	}
 }
-Matrix & operator - (Matrix & a, Matrix & b)
+Matrix  operator - (Matrix & a, Matrix & b)
 {
 	if (a.Size() == b.Size())
 	{
 		Matrix c(a.Matr_, a.Size());
-		//c.Matr_ = new  Komp *[a.Size()];
 		for (int i = 0; i < a.Size(); i++)
 		{
 			for (int j = 0; j < a.Size(); j++)
@@ -179,32 +224,35 @@ Matrix & operator - (Matrix & a, Matrix & b)
 	else
 	{
 		cout << "Разные размеры \n";
+		return Matrix();
 	}
 }
-Matrix & operator * (Matrix & a, Matrix & b)
+Matrix  operator * (Matrix & a, Matrix & b)
 {
-
-	Matrix c(a.Matr_, a.Size());
-	//c.Matr_ = new  Komp *[a.Size()];
-	int n = a.Size();
-	int x1, x2, x3, x4;
-	x1 = x2 = x3 = x4 = 0;
-	for (int i = 0; i < n; i++)
+	if (a.Size() == b.Size())
 	{
-		for (int j = 0; j < n; j++)
+		Matrix c(a.Matr_, a.Size());
+		int n = a.Size();
+		int x1, x2, x3, x4;
+		x1 = x2 = x3 = x4 = 0;
+		for (int i = 0; i < n; i++)
 		{
-			c.Matr_[i][j]=Komp();
-			for (x2 = 0; x2 < n; x2++)
+			for (int j = 0; j < n; j++)
 			{
-				Komp x3;
-				x3 = a.Matr_[i][x2] * b.Matr_[x2][j] ;
-				c.Matr_[i][j] = c.Matr_[i][j] + x3;
-				/*cout << "x=";
-				x3.print();
-				cout << "\nc=";
-				c.Matr_[i][j].print();*/
+				c.Matr_[i][j] = Komp();
+				for (x2 = 0; x2 < n; x2++)
+				{
+					Komp x3;
+					x3 = a.Matr_[i][x2] * b.Matr_[x2][j];
+					c.Matr_[i][j] = c.Matr_[i][j] + x3;
+				}
 			}
 		}
+		return c;
 	}
-	return c;
+	else
+	{
+		cout << "Разные размеры \n";
+		return Matrix();
+	}
 }
